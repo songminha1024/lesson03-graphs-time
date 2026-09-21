@@ -122,7 +122,7 @@ st.write(
 
 
 # ==========================================
-# 그래프 2. 기간 내 일관객 합계 상위 5편 비교
+# 그래프 2. 일관객 합계 상위 5편 비교
 # ==========================================
 st.divider()
 st.header("그래프 2. 일관객 합계 상위 5편의 날짜별 변화")
@@ -132,25 +132,21 @@ st.markdown(
     "날짜별 관객 수를 비교합니다."
 )
 
-# 영화별 기간 내 일관객 합계 계산
 movie_totals = (
     df.groupby("영화명", as_index=False)["일관객"]
     .sum()
     .rename(columns={"일관객": "기간 내 일관객 합계"})
 )
 
-# 일관객 합계 기준 상위 5편 선정
 top5_movies = (
     movie_totals
     .nlargest(5, "기간 내 일관객 합계")["영화명"]
     .tolist()
 )
 
-# 상위 5편의 날짜별 일관객 데이터 추출
 top5_df = df[df["영화명"].isin(top5_movies)].copy()
 top5_df = top5_df.sort_values("날짜")
 
-# 다섯 영화를 색으로 구분한 선 그래프
 fig2 = px.line(
     top5_df,
     x="날짜",
@@ -161,11 +157,6 @@ fig2 = px.line(
         "날짜": "날짜",
         "일관객": "일관객 수 (명)",
         "영화명": "영화"
-    },
-    hover_data={
-        "날짜": "|%Y-%m-%d",
-        "일관객": ":,",
-        "영화명": True
     }
 )
 
@@ -182,7 +173,6 @@ fig2.update_layout(
     legend_title="영화 (클릭하여 표시/숨기기)"
 )
 
-# 범례를 클릭하면 해당 영화 선을 켜고 끌 수 있음
 st.plotly_chart(fig2, use_container_width=True)
 
 st.markdown("**이 그래프로 알 수 있는 것**")
@@ -193,8 +183,79 @@ st.write(
 
 
 # ==========================================
-# 그래프 3. 추가 예정
+# 그래프 3. 날짜별 박스오피스 10위권 총 일관객
 # ==========================================
 st.divider()
-st.header("그래프 3. 추가 예정")
+st.header("그래프 3. 날짜별 박스오피스 10위권 총 일관객")
+
+st.markdown(
+    "매일 박스오피스 10위권에 오른 영화들의 일관객을 합산하여 "
+    "전체 관객 규모의 시간에 따른 변화를 살펴봅니다."
+)
+
+# 날짜별 일관객 합계 계산
+daily_total = (
+    df.groupby("날짜", as_index=False)["일관객"]
+    .sum()
+    .rename(columns={"일관객": "총 일관객"})
+    .sort_values("날짜")
+)
+
+# 총 일관객이 가장 많았던 상위 3일
+top3_days = daily_total.nlargest(3, "총 일관객").copy()
+
+# 날짜 라벨 생성
+top3_days["날짜 라벨"] = top3_days["날짜"].dt.strftime("%Y-%m-%d")
+
+# 영역 그래프 생성
+fig3 = px.area(
+    daily_total,
+    x="날짜",
+    y="총 일관객",
+    title="날짜별 박스오피스 10위권 총 일관객",
+    labels={
+        "날짜": "날짜",
+        "총 일관객": "총 일관객 수 (명)"
+    }
+)
+
+# 상위 3일을 마커와 날짜 라벨로 표시
+fig3.add_scatter(
+    x=top3_days["날짜"],
+    y=top3_days["총 일관객"],
+    mode="markers+text",
+    text=top3_days["날짜 라벨"],
+    textposition="top center",
+    marker=dict(
+        size=10,
+        color="red",
+        symbol="circle"
+    ),
+    name="관객 합계 상위 3일",
+    hovertemplate=(
+        "날짜: %{x|%Y-%m-%d}<br>"
+        "총 일관객: %{y:,.0f}명<extra></extra>"
+    )
+)
+
+fig3.update_layout(
+    xaxis_title="날짜",
+    yaxis_title="총 일관객 수 (명)",
+    hovermode="x unified"
+)
+
+st.plotly_chart(fig3, use_container_width=True)
+
+st.markdown("**이 그래프로 알 수 있는 것**")
+st.write(
+    "날짜별 박스오피스 10위권의 총 일관객 변화를 통해 "
+    "전체 영화 관람 규모의 추세와 관객이 집중된 날짜를 파악할 수 있다."
+)
+
+
+# ==========================================
+# 그래프 4. 추가 예정
+# ==========================================
+st.divider()
+st.header("그래프 4. 추가 예정")
 st.caption("앞으로 새로운 시간 관련 그래프를 추가할 공간입니다.")
