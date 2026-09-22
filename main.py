@@ -257,7 +257,7 @@ movie_summary = (
     df.groupby("영화명")
     .agg(
         기간_일관객_합계=("일관객", "sum"),
-        10위권_날짜수=("날짜", "nunique")
+        **{"10위권_날짜수": ("날짜", "nunique")}
     )
     .reset_index()
 )
